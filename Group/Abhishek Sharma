@@ -1,1 +1,437 @@
+/**
+ * City Tourism Project - Event Calendar Component
+ * This file contains four classes representing the main stakeholders:
+ * 1. TourismDepartment - Government entity managing events
+ * 2. LocalBusiness - Businesses hosting or sponsoring events
+ * 3. Tourist - End users viewing and attending events
+ * 4. EventOrganizer - Entities responsible for creating and managing events
+ */
 
+import java.util.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+// Main class to demonstrate the component
+public class CityTourismEventCalendar {
+    public static void main(String[] args) {
+        // Initialize stakeholders
+        TourismDepartment cityDept = new TourismDepartment("Downtown Tourism Authority", "City Hall, Main Street");
+        EventOrganizer organizer = new EventOrganizer("FestivalPro", "events@festivalpro.com", "555-1234");
+        LocalBusiness restaurant = new LocalBusiness("Seaside Grill", "123 Harbor Ave", "Food & Beverage");
+        Tourist visitor = new Tourist("John Doe", "john.doe@email.com", "US");
+        
+        // Create some events
+        Event musicFestival = organizer.createEvent(
+            "Summer Music Festival", 
+            "Downtown Park",
+            LocalDateTime.of(2025, 6, 15, 17, 0),
+            LocalDateTime.of(2025, 6, 15, 23, 0),
+            "Annual music festival featuring local bands",
+            45.99
+        );
+        
+        Event foodTour = restaurant.sponsorEvent(
+            "Taste of the City",
+            "Various Locations",
+            LocalDateTime.of(2025, 5, 10, 12, 0),
+            LocalDateTime.of(2025, 5, 10, 16, 0),
+            "Sample cuisine from the city's best restaurants",
+            25.00
+        );
+        
+        // Tourism Department approves and publishes events
+        cityDept.approveEvent(musicFestival);
+        cityDept.approveEvent(foodTour);
+        cityDept.publishEventCalendar();
+        
+        // Tourist interacts with events
+        visitor.viewEventDetails(musicFestival);
+        visitor.registerForEvent(musicFestival);
+        visitor.viewEventDetails(foodTour);
+        visitor.registerForEvent(foodTour);
+        
+        // Print registered events for tourist
+        visitor.printRegisteredEvents();
+    }
+}
+
+/**
+ * Stakeholder 1: Tourism Department
+ * Responsible for approving events and maintaining the official calendar
+ */
+class TourismDepartment {
+    private String name;
+    private String address;
+    private List<Event> approvedEvents;
+    
+    public TourismDepartment(String name, String address) {
+        this.name = name;
+        this.address = address;
+        this.approvedEvents = new ArrayList<>();
+        System.out.println("Tourism Department initialized: " + name);
+    }
+    
+    public void approveEvent(Event event) {
+        approvedEvents.add(event);
+        event.setApproved(true);
+        System.out.println("Event approved by Tourism Department: " + event.getTitle());
+    }
+    
+    public void rejectEvent(Event event, String reason) {
+        event.setApproved(false);
+        System.out.println("Event rejected by Tourism Department: " + event.getTitle() + " - Reason: " + reason);
+    }
+    
+    public void publishEventCalendar() {
+        System.out.println("\n===== OFFICIAL CITY EVENT CALENDAR =====");
+        System.out.println("Published by: " + name);
+        System.out.println("Total approved events: " + approvedEvents.size());
+        
+        for (Event event : approvedEvents) {
+            System.out.println("\n- " + event.getTitle());
+            System.out.println("  Date: " + event.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            System.out.println("  Time: " + event.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm")) + 
+                               " to " + event.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm")));
+            System.out.println("  Location: " + event.getLocation());
+            System.out.println("  Price: $" + event.getTicketPrice());
+        }
+        System.out.println("========================================\n");
+    }
+    
+    // Getters and setters
+    public String getName() {
+        return name;
+    }
+    
+    public String getAddress() {
+        return address;
+    }
+    
+    public List<Event> getApprovedEvents() {
+        return new ArrayList<>(approvedEvents);
+    }
+}
+
+/**
+ * Stakeholder 2: Local Business
+ * Businesses that sponsor or host events
+ */
+class LocalBusiness {
+    private String name;
+    private String address;
+    private String category;
+    private List<Event> sponsoredEvents;
+    
+    public LocalBusiness(String name, String address, String category) {
+        this.name = name;
+        this.address = address;
+        this.category = category;
+        this.sponsoredEvents = new ArrayList<>();
+        System.out.println("Local Business initialized: " + name + " (" + category + ")");
+    }
+    
+    public Event sponsorEvent(String title, String location, LocalDateTime startTime, 
+                              LocalDateTime endTime, String description, double ticketPrice) {
+        Event event = new Event(title, location, startTime, endTime, description, ticketPrice);
+        event.setSponsor(this.name);
+        sponsoredEvents.add(event);
+        System.out.println("Event sponsored by " + name + ": " + title);
+        return event;
+    }
+    
+    public void offerPromotion(Event event, String promotionDetails) {
+        System.out.println(name + " is offering a special promotion for " + event.getTitle() + ": " + promotionDetails);
+    }
+    
+    // Getters and setters
+    public String getName() {
+        return name;
+    }
+    
+    public String getAddress() {
+        return address;
+    }
+    
+    public String getCategory() {
+        return category;
+    }
+    
+    public List<Event> getSponsoredEvents() {
+        return new ArrayList<>(sponsoredEvents);
+    }
+}
+
+/**
+ * Stakeholder 3: Tourist
+ * End users who view and attend events
+ */
+class Tourist {
+    private String name;
+    private String email;
+    private String country;
+    private List<Event> registeredEvents;
+    
+    public Tourist(String name, String email, String country) {
+        this.name = name;
+        this.email = email;
+        this.country = country;
+        this.registeredEvents = new ArrayList<>();
+        System.out.println("Tourist profile created: " + name + " from " + country);
+    }
+    
+    public void viewEventDetails(Event event) {
+        System.out.println("\n" + name + " is viewing details for: " + event.getTitle());
+        System.out.println("Description: " + event.getDescription());
+        System.out.println("Date & Time: " + 
+                          event.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) + " to " +
+                          event.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm")));
+        System.out.println("Location: " + event.getLocation());
+        System.out.println("Price: $" + event.getTicketPrice());
+        if (event.getSponsor() != null) {
+            System.out.println("Sponsored by: " + event.getSponsor());
+        }
+    }
+    
+    public void registerForEvent(Event event) {
+        registeredEvents.add(event);
+        event.incrementAttendees();
+        System.out.println(name + " has registered for: " + event.getTitle());
+    }
+    
+    public void cancelRegistration(Event event) {
+        if (registeredEvents.contains(event)) {
+            registeredEvents.remove(event);
+            event.decrementAttendees();
+            System.out.println(name + " has canceled registration for: " + event.getTitle());
+        }
+    }
+    
+    public void rateEvent(Event event, int rating, String comment) {
+        if (registeredEvents.contains(event)) {
+            System.out.println(name + " rated " + event.getTitle() + ": " + rating + "/5 - \"" + comment + "\"");
+        } else {
+            System.out.println("Error: Can only rate events you've attended");
+        }
+    }
+    
+    public void printRegisteredEvents() {
+        System.out.println("\n" + name + "'s Registered Events:");
+        if (registeredEvents.isEmpty()) {
+            System.out.println("No events registered");
+            return;
+        }
+        
+        for (Event event : registeredEvents) {
+            System.out.println("- " + event.getTitle() + " on " + 
+                              event.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        }
+    }
+    
+    // Getters and setters
+    public String getName() {
+        return name;
+    }
+    
+    public String getEmail() {
+        return email;
+    }
+    
+    public String getCountry() {
+        return country;
+    }
+}
+
+/**
+ * Stakeholder 4: Event Organizer
+ * Creates and manages events
+ */
+class EventOrganizer {
+    private String companyName;
+    private String contactEmail;
+    private String contactPhone;
+    private List<Event> createdEvents;
+    
+    public EventOrganizer(String companyName, String contactEmail, String contactPhone) {
+        this.companyName = companyName;
+        this.contactEmail = contactEmail;
+        this.contactPhone = contactPhone;
+        this.createdEvents = new ArrayList<>();
+        System.out.println("Event Organizer initialized: " + companyName);
+    }
+    
+    public Event createEvent(String title, String location, LocalDateTime startTime, 
+                           LocalDateTime endTime, String description, double ticketPrice) {
+        Event event = new Event(title, location, startTime, endTime, description, ticketPrice);
+        event.setOrganizer(this.companyName);
+        createdEvents.add(event);
+        System.out.println("Event created by " + companyName + ": " + title);
+        return event;
+    }
+    
+    public void updateEventDetails(Event event, String field, Object value) {
+        if (!createdEvents.contains(event)) {
+            System.out.println("Error: Can only update events you've created");
+            return;
+        }
+        
+        switch (field.toLowerCase()) {
+            case "title":
+                event.setTitle((String) value);
+                break;
+            case "location":
+                event.setLocation((String) value);
+                break;
+            case "description":
+                event.setDescription((String) value);
+                break;
+            case "price":
+                event.setTicketPrice((Double) value);
+                break;
+            default:
+                System.out.println("Unknown field: " + field);
+                return;
+        }
+        System.out.println("Updated " + field + " for event: " + event.getTitle());
+    }
+    
+    public void cancelEvent(Event event, String reason) {
+        if (createdEvents.contains(event)) {
+            event.setCancelled(true);
+            System.out.println("Event cancelled by organizer: " + event.getTitle() + " - Reason: " + reason);
+        }
+    }
+    
+    // Getters and setters
+    public String getCompanyName() {
+        return companyName;
+    }
+    
+    public String getContactEmail() {
+        return contactEmail;
+    }
+    
+    public String getContactPhone() {
+        return contactPhone;
+    }
+    
+    public List<Event> getCreatedEvents() {
+        return new ArrayList<>(createdEvents);
+    }
+}
+
+/**
+ * Event class - represents an event in the calendar
+ */
+class Event {
+    private String title;
+    private String location;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private String description;
+    private double ticketPrice;
+    private String organizer;
+    private String sponsor;
+    private boolean approved;
+    private boolean cancelled;
+    private int attendeeCount;
+    
+    public Event(String title, String location, LocalDateTime startTime, 
+                LocalDateTime endTime, String description, double ticketPrice) {
+        this.title = title;
+        this.location = location;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.description = description;
+        this.ticketPrice = ticketPrice;
+        this.approved = false;
+        this.cancelled = false;
+        this.attendeeCount = 0;
+    }
+    
+    public void incrementAttendees() {
+        this.attendeeCount++;
+    }
+    
+    public void decrementAttendees() {
+        if (this.attendeeCount > 0) {
+            this.attendeeCount--;
+        }
+    }
+    
+    // Getters and setters
+    public String getTitle() {
+        return title;
+    }
+    
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    
+    public String getLocation() {
+        return location;
+    }
+    
+    public void setLocation(String location) {
+        this.location = location;
+    }
+    
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+    
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+    
+    public String getDescription() {
+        return description;
+    }
+    
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    
+    public double getTicketPrice() {
+        return ticketPrice;
+    }
+    
+    public void setTicketPrice(double ticketPrice) {
+        this.ticketPrice = ticketPrice;
+    }
+    
+    public String getOrganizer() {
+        return organizer;
+    }
+    
+    public void setOrganizer(String organizer) {
+        this.organizer = organizer;
+    }
+    
+    public String getSponsor() {
+        return sponsor;
+    }
+    
+    public void setSponsor(String sponsor) {
+        this.sponsor = sponsor;
+    }
+    
+    public boolean isApproved() {
+        return approved;
+    }
+    
+    public void setApproved(boolean approved) {
+        this.approved = approved;
+    }
+    
+    public boolean isCancelled() {
+        return cancelled;
+    }
+    
+    public void setCancelled(boolean cancelled) {
+        this.cancelled = cancelled;
+    }
+    
+    public int getAttendeeCount() {
+        return attendeeCount;
+    }
+}
